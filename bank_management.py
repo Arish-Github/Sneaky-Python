@@ -10,6 +10,7 @@ def more_ops():
     if more == 'y':
         ask_choices()
     elif more == 'n':
+        connector.commit()
         connector.close()
     else:
         print("Enter y/n")
@@ -29,9 +30,7 @@ def view_user_profile():
         cursor.execute(f"select * from bank_management where account_number = {acc_no}")
         data = cursor.fetchall()
 
-        acc_details = tbl.tabulate(data,
-                                   headers=['Account NUmber', 'Name', 'Gender', 'Age', 'DOB', 'Aadhar Number',
-                                            'Address', 'Phone Number', 'Account Balance'])
+        acc_details = tbl.tabulate(data, headers=['Account NUmber', 'Name', 'Gender', 'Age', 'DOB', 'Aadhar Number', 'Address', 'Phone Number', 'Account Balance'])
 
         print(acc_details)
 
@@ -46,30 +45,36 @@ def view_all():
     cursor.execute("select * from bank_management")
     data = cursor.fetchall()
 
-    table = tbl.tabulate(data,
-                         headers=['Account NUmber', 'Name', 'Gender', 'Age', 'DOB', 'Aadhar Number', 'Address',
-                                  'Phone Number', 'Account Balance'])
+    table = tbl.tabulate(data, headers=['Account NUmber', 'Name', 'Gender', 'Age', 'DOB', 'Aadhar Number', 'Address', 'Phone Number', 'Account Balance'])
     print(table)
 
     more_ops()
 
 
 def add_account():
-    name = input("Enter your full name: ")
-    gender = input("Enter you gender (M/F): ")
-    age = int(input("Enter your age: "))
-    dob = input("Enter your date of birth (YYYY-MM-DD): ")
-    aadhar = int(input("Enter your aadhar card number: "))
-    address = input("Enter your residential address: ")
-    phone = int(input("Enter your phone number: "))
-    money_added = int(input("Amount of money added while opening account: "))
+    try:
+        name = input("Enter your full name: ")
+        gender = input("Enter you gender (M/F): ")
+        age = int(input("Enter your age: "))
+        dob = input("Enter your date of birth (YYYY-MM-DD): ")
+        aadhar = int(input("Enter your aadhar card number: "))
+        address = input("Enter your residential address: ")
+        phone = int(input("Enter your phone number: "))
+        money_added = int(input("Amount of money added while opening account: "))
+    except ValueError:
+        print("You entered something wrong... Try again!!!")
+        add_account()
 
     cursor.execute("select max(account_number) from bank_management")
-    new_account_no = cursor.fetchall()[0][0] + 1
+    max_acc = cursor.fetchall()[0][0]
 
-    cursor.execute(
-        f"insert into bank_management values({new_account_no}, '{name}', '{gender}', {age}, '{dob}', {aadhar}, '{address}', {phone}, {money_added})")
-    print(f"Account added successfully!!\nYour account number is: {new_account_no}")
+    if max_acc is None:
+        new_acc = 1234567890
+    else:
+        new_acc = max_acc + 1
+
+    cursor.execute(f"insert into bank_management values({new_acc}, '{name}', '{gender}', {age}, '{dob}', {aadhar}, '{address}', {phone}, {money_added})")
+    print(f"Account added successfully!!\nYour account number is: {new_acc}")
 
     more_ops()
 
@@ -117,11 +122,11 @@ def update_account_info():
                          7. Phone Number"""))
         if what == 1:
             name = input("Enter the corrected name: ")
-            cursor.execute(f"update bank_management set Name = {name} where account_number = {acc_no}")
+            cursor.execute(f"update bank_management set Name = '{name}' where account_number = {acc_no}")
             print("Updated successfully...")
         elif what == 2:
             gender = input("Enter the corrected gender (M/F): ")
-            cursor.execute(f"update bank_management set gender = {gender} where account_number = {acc_no}")
+            cursor.execute(f"update bank_management set gender = '{gender}' where account_number = {acc_no}")
             print("Updated successfully...")
         elif what == 3:
             age = int(input("Enter the corrected age: "))
@@ -137,7 +142,7 @@ def update_account_info():
             print("Updated successfully...")
         elif what == 6:
             address = input("Enter the corrected address: ")
-            cursor.execute(f"update bank_management set Address = {address} where account_number = {acc_no}")
+            cursor.execute(f"update bank_management set Address = '{address}' where account_number = {acc_no}")
             print("Updated successfully...")
         elif what == 7:
             phone = int(input("Enter the corrected phone number: "))
@@ -169,8 +174,12 @@ def ask_choices():
     5. Update account info
     6. Check account balance
     ''')
+    try:
+        choice = int(input("Enter what you want to do\n(only a number)\n--> "))
+    except ValueError:
+        print("Please enter a number... Try Again!!\n")
+        ask_choices()
 
-    choice = int(input("Enter what you want to do\n(only a number)\n--> "))
     if choice == 1:
         view_user_profile()
     elif choice == 2:
@@ -189,3 +198,5 @@ def ask_choices():
 
 
 ask_choices()
+
+connector.close()
