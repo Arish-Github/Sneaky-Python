@@ -12,6 +12,7 @@ def more_ops():
     elif more == 'n':
         connector.commit()
         connector.close()
+        print("Okay, Have a nice day!!!")
     else:
         print("Enter y/n")
         more_ops()
@@ -119,7 +120,8 @@ def update_account_info():
                          4. DOB
                          5. Aadhar Number
                          6. Address
-                         7. Phone Number"""))
+                         7. Phone Number
+                         --> """))
         if what == 1:
             name = input("Enter the corrected name: ")
             cursor.execute(f"update bank_management set Name = '{name}' where account_number = {acc_no}")
